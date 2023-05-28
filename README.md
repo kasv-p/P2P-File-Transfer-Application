@@ -42,11 +42,11 @@ This function acepts any connectiosn that recheases to this socket and creates a
 `communicate_peer()`
 
 This function receives message from the peer. Whenever a message like "req <file name>" is received then it checks if the file exists in the list os sharable files if yes the it will send a message "have" to the requesting peer and "not have" message if there is no such file in the sharable files list of that peer.
-<br>
+<br><br>
 Also if it is requested to send a chunk of specific file it divides the file into equal chunks and send the chunk only that is requested from the whole file.
-  <br>
-Here, lower limit of the chunk is calculated using the formula (chunk*number)*(len(file*data_bytes))//no_chunks and upper limit is (chunk_number+1)*(len(file_data_bytes))//no_chunks and it sends the file_data_bytes[lower_limit:upper_limit]. Here, the number of chunks will be equal to the number of peers present in the network haivng the requested file in their sharable files list.
-  <br>
+ <br> <br>
+Here, lower limit of the chunk is calculated using the formula (chunk*number)*(len(file*data_bytes))//no_chunks and upper limit is (chunk_number+1)*(len(file_data_bytes))//no_chunks and it sends the file_data_bytes[lower_limit:upper_limit].<br><br> Here, the number of chunks will be equal to the number of peers present in the network haivng the requested file in their sharable files list.
+  <br><br>
 It also sends the eof file message as the requested chunk is further divided into chunks of size equal to BUFFER_SIZE and at last it sends eof message to tell the chunks to be sent are done and it is the end of the chunk being sent by it. <br>
 
 `file_thread()`
@@ -56,8 +56,8 @@ This also reads the chunks of data being received till the eof message is sent t
 
 `main function - main()`
 
-creates a peer_socket to listen from any other peers and listen from manager. <br>
-Here, these are 2 different threads which will run from start of the main function. Also send "new_peer" message automatically to manager to update the active_peers list on the manager side. <br>When a message like "left_peer" is given as input all connections from this and to this socket are closed. When a message like "req <filename>" is given to the peer it creates dummy sockets to connect to the peers which are present int the active peers list and first communicate with "have" and "not have" messages. <br>The peer with files will be added to the peers_found list and later the socket communicates with the peers who sent the "have" message. It created threads to get file data parallely on function file_thread which receives data from the peer with dile and keeps the data in a dictionary in file_data in which keys are peer index numbers in the peers_found list nad the data will be value for the respective peer key. <br> Later the peer need to join in the threads created to fetch the files as then only all the bytes will be received properly from the peers who sent the file chunks.<br> Later the dictionary is sorted according to the keys and merged by adding all the bytes after sorting the keys in the file_data dictionary and then created new file and write data to the file in the directory of the requested peer.<br> Also the sharable files list is updated on receiving a file fully. In case if a peer gets disconnected in between file transfer missing chunk numbers are found and request those all chunks from diff peers which are present in peers_found list already if none of them are present then the file can't be shared and need to be requested later that is after some time.
+creates a peer_socket to listen from any other peers and listen from manager. <br><br>
+Here, these are 2 different threads which will run from start of the main function. Also send "new_peer" message automatically to manager to update the active_peers list on the manager side. <br><br>When a message like "left_peer" is given as input all connections from this and to this socket are closed. When a message like "req <filename>" is given to the peer it creates dummy sockets to connect to the peers which are present int the active peers list and first communicate with "have" and "not have" messages. <br><br>The peer with files will be added to the peers_found list and later the socket communicates with the peers who sent the "have" message. It created threads to get file data parallely on function file_thread which receives data from the peer with dile and keeps the data in a dictionary in file_data in which keys are peer index numbers in the peers_found list and the data will be value for the respective peer key. <br><br>Later the peer need to join in the threads created to fetch the files as then only all the bytes will be received properly from the peers who sent the file chunks.<br><br>Later the dictionary is sorted according to the keys and merged by adding all the bytes after sorting the keys in the file_data dictionary and then created new file and write data to the file in the directory of the requested peer.<br><br>Also the sharable files list is updated on receiving a file fully. In case if a peer gets disconnected in between file transfer missing chunk numbers are found and request those all chunks from diff peers which are present in peers_found list already if none of them are present then the file can't be shared and need to be requested later that is after some time.
 
 How to run ?
 --------------------------
@@ -65,74 +65,74 @@ How to run ?
 python manager.py - This command is to run the manager.py file which will have the peer info. Manager program runs in a while loop infinitely.
 
 python peer.py <PORT_NUM> <DIR_NAME> - This command is to run the peer python file which takes port number and directory name as command line arguments. 
-<br>  
+<br><br>
 The port number given is used to bind the peer socket to that port number, the dir with the name DIR_NAME is given to get the sharable files of the peer. This list will be updated on successfully receiving a eew file from other peer.
-<br>
+<br><br>
 peer will be asked input continuously in a while loop such that when a peer want to leave peer need to enter message left_peer and  
 to request a file peer need to enter the command req <file_name>.
 
 Program structure
 --------------------------
 
-    For manager code
+For manager code
 
-        bind, listen
+    bind, listen
 
-        while loop -> conn, client_address, start a thread to communicate
+    while loop -> conn, client_address, start a thread to communicate
 
-        If added call the function broadcast_peers, if left also call the function broadcast_peers.
+    If added call the function broadcast_peers, if left also call the function broadcast_peers.
 
-    For peer code
+For peer code
 
-        2 threads
+    2 threads
 
-        1. connect to manager as a client (function=receive_from_server) update per process active_peers list
-        2. A thread to accept connections from peers
-        (function=listen_to_peer) acting like a server to other peers on file request.
-            1. If have file in sharable list send have else send not have.
-            2. If requested a chunk send that part from the file according to the chunk requested from the requesting peer.
+    1. connect to manager as a client (function=receive_from_server) update per process active_peers list
+    2. A thread to accept connections from peers
+    (function=listen_to_peer) acting like a server to other peers on file request.
+        1. If have file in sharable list send have else send not have.
+        2. If requested a chunk send that part from the file according to the chunk requested from the requesting peer.
 
-        Take input in a while loop
+    Take input in a while loop
 
-        if left_peer
+    if left_peer
 
-        1. send to manager that the peer is leaving.
-        2. close the connection socket between manager and the peer.
+    1. send to manager that the peer is leaving.
+    2. close the connection socket between manager and the peer.
 
-        if req file_name
+    if req file_name
 
-        1. send req to file and add the peers who have file to peers_found list.
-        2. create and join on threads (function=file_thread) to get the file requested from the pther peers and merge it.
+    1. send req to file and add the peers who have file to peers_found list.
+    2. create and join on threads (function=file_thread) to get the file requested from the pther peers and merge it.
 
-        help command shows the list of commands available to the the peer or client who is using the protocol.
+    help command shows the list of commands available to the the peer or client who is using the protocol.
 
-    A newly arrived peer, managing when a peer leaves - communicate_with_peer(conn, client_addr)
-    Manager periodically broadcasts - broadcast_peers()
+A newly arrived peer, managing when a peer leaves - communicate_with_peer(conn, client_addr)
+Manager periodically broadcasts - broadcast_peers()
 
-    receiving file from peer - file_thread(to_connect_peer_info, i, req_msg, no_peers)
-    listening to other peers - listen_to_peer(), communicate_peer()
-    getting list of active peers when broadcasted - receive_from_server() 
+receiving file from peer - file_thread(to_connect_peer_info, i, req_msg, no_peers)
+listening to other peers - listen_to_peer(), communicate_peer()
+getting list of active peers when broadcasted - receive_from_server() 
 
-    dividing chunks according to the buffer size along with considering the only part need to be divided
+dividing chunks according to the buffer size along with considering the only part need to be divided
 
-    lower_limit = (chunk_number)*(len(file_data_bytes))//no_chunks
-    upper_limit = (chunk_number+1) * \
-        (len(file_data_bytes))//no_chunks
+lower_limit = (chunk_number)*(len(file_data_bytes))//no_chunks
+upper_limit = (chunk_number+1) * \
+    (len(file_data_bytes))//no_chunks
 
-    start = lower_limit
-    while start < upper_limit:
-        conn.sendall(file_data_bytes[start:start+BUFFER_SIZE])
-        start += BUFFER_SIZE
-    conn.sendall(END_FILE)
-    conn.close()
+start = lower_limit
+while start < upper_limit:
+    conn.sendall(file_data_bytes[start:start+BUFFER_SIZE])
+    start += BUFFER_SIZE
+conn.sendall(END_FILE)
+conn.close()
 
-    active_peers - maintain list of peers which are active in the p2p network.
-    file_data - dictionary of chunk and the data received.
-    all messages used to communicate are mentioned in the top of the peer python file. 
+active_peers - maintain list of peers which are active in the p2p network.
+file_data - dictionary of chunk and the data received.
+all messages used to communicate are mentioned in the top of the peer python file. 
 
 
 
-Note - conditions that should be taken care is when chunk size of the file to be transferred is greater than BUFFER SIZE then one need to send the file in the order each sending data of length BUFFER SIZE.
+<b>Note</b> - conditions that should be taken care is when chunk size of the file to be transferred is greater than BUFFER SIZE then one need to send the file in the order each sending data of length BUFFER SIZE.<br>
 Also there is a EOF message sent to ensure that the sending peer has sent all the chunk data fully to the requested peer.
 
-link of demo video url - https://drive.google.com/file/d/1ttCQWBx1OsIs4Ms2twVRI1oBkVHIkeDi/view?usp=sharing
+link of demo video url - [Here](https://drive.google.com/file/d/1MTWGQinxfvbYmVzOYc4AGZO26kWE11xA/view?usp=sharing)
