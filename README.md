@@ -3,10 +3,7 @@
 Abstract
 -------------------------
 
-Here, manager broadcasts the active peers in the p2p network.
-When a peer joins the networks it pings the manager and manager send the active peers list
-
-When a peer requests a file peers with that file will response with a message called "have" when the peer receives the "have" message the requesting peer connects with all the peers who have the file and send them parallely (implemented using threads) via chunks.
+This is a peer-to-peer file sharing application where a manager broadcasts active peers in the network.<br><br> When a peer joins, it pings the manager and receives the list of active peers. When a peer requests a file, peers with that file respond with a "have" message. <br><br>Upon receiving the "have" message, the requesting peer connects with all peers having the file and parallelly sends file chunks using threads.
 
 Explaining Code Files
 --------------------------
